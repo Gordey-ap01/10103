@@ -15,6 +15,7 @@ const googleUrl =
   "https://www.google.com/search?q=%D0%A1%D0%B5%D1%80%D0%B2%D0%B8%D1%81+101+%D0%A0%D0%B5%D0%BC%D0%BE%D0%BD%D1%82+%D0%BD%D0%BE%D1%83%D1%82%D0%B1%D1%83%D0%BA%D0%BE%D0%B2+%D0%B8%D0%B3%D1%80%D0%BE%D0%B2%D1%8B%D1%85+%D0%BF%D1%80%D0%B8%D1%81%D1%82%D0%B0%D0%B2%D0%BE%D0%BA+%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%BE%D0%B2";
 const mapEmbedUrl =
   "https://yandex.ru/map-widget/v1/?ll=137.026408%2C50.568069&mode=search&oid=27521144258&ol=biz&z=12";
+const statusWidgetUrl = "https://app.helloclient.by/check.html#126833";
 
 const categoryMeta = {
   telefony: {
@@ -196,6 +197,11 @@ function header(root) {
         <span class="brand__city">Комсомольск-на-Амуре</span>
       </span>
     </a>
+    <div class="header-repair-counter" aria-label="Всего отремонтировано устройств">
+      <span>Отремонтировано</span>
+      <strong data-header-counter>523 847</strong>
+      <small>устройств</small>
+    </div>
     <div class="header-actions">
       <a href="tel:+79940760101">+7 (994) 076-01-01</a>
       <a class="btn btn-primary btn-sm" href="#" data-open-booking>Записаться</a>
@@ -222,19 +228,23 @@ function footer(root) {
 function homeBody() {
   return `<section class="hero">
   <div class="container hero__inner">
-    <div>
-      <p class="eyebrow eyebrow-light">Сервисный центр</p>
-      <h1>Сервис 101</h1>
-      <p class="hero__lead">Квалифицированный ремонт цифровой техники с гарантией. Ремонтируем телефоны, ноутбуки, компьютеры, игровые приставки, видеокарты и геймпады.</p>
-      <div class="hero__actions">
-        <a class="btn btn-primary" href="#specialization">Выбрать категорию</a>
-        <a class="btn btn-ghost" href="#" data-open-booking>Записаться</a>
+    <div class="hero-copy">
+      <div class="hero-heading">
+        <p class="eyebrow eyebrow-light">Сервисный центр</p>
+        <h1>Сервис 101</h1>
+      </div>
+      <div class="hero-copy__details">
+        <p class="hero__lead">Квалифицированный ремонт цифровой техники с гарантией. Ремонтируем телефоны, ноутбуки, компьютеры, игровые приставки, видеокарты и геймпады.</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="#specialization">Выбрать категорию</a>
+          <a class="btn btn-ghost" href="#" data-open-booking>Записаться</a>
+        </div>
       </div>
     </div>
     <div class="revival-counter" aria-live="polite">
-      <span class="revival-counter__top">Вернули к жизни</span>
+      <span class="revival-counter__top">Отремонтировано устройств</span>
       <span class="revival-counter__number" data-revival-counter>0</span>
-      <span class="revival-counter__bottom">ваших гаджетов с любовью к технике</span>
+      <span class="revival-counter__bottom">Вернули к жизни с 2016 года</span>
       <span class="revival-counter__ring revival-counter__ring--one" aria-hidden="true"></span>
       <span class="revival-counter__ring revival-counter__ring--two" aria-hidden="true"></span>
       <span class="revival-counter__spark" aria-hidden="true"></span>
@@ -295,6 +305,8 @@ function homeBody() {
   </div>
 </section>
 
+${statusBody()}
+
 ${reviewsBody()}
 
 <section class="section section-white">
@@ -325,25 +337,57 @@ function categoryCard(category) {
   </a>`;
 }
 
+function statusBody() {
+  return `<section id="repair-status" class="section section-gray status-section">
+  <div class="container status-layout">
+    <div class="status-copy">
+      <p class="eyebrow">Статус ремонта</p>
+      <h2 class="section-title">Узнайте, что сейчас с вашим устройством</h2>
+      <p class="section-text">Введите телефон, который оставили при оформлении заказа. Данные откроются в защищённом виджете сервисной системы.</p>
+      <a class="status-link" href="${statusWidgetUrl}" target="_blank" rel="noreferrer">Открыть проверку в отдельном окне</a>
+    </div>
+    <div class="status-widget">
+      <iframe title="Проверка статуса ремонта" src="${statusWidgetUrl}" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>`;
+}
+
 function reviewsBody() {
   return `<section id="reviews" class="section section-white reviews-section">
-  <div class="container reviews-grid">
-    <div class="rating-card">
+  <div class="container">
+    <div class="section-head reviews-heading">
       <p class="eyebrow">Отзывы</p>
-      <div class="rating-number">4.8</div>
-      <div class="stars">★★★★★</div>
-      <p class="section-text">Рейтинг филиала на Вокзальной в 2ГИС: 4.8, 172 оценки и 154 отзыва. У филиала на Орехова: 4.7, 96 оценок и 79 отзывов.</p>
-      <div class="review-links">
-        <a class="review-link" href="${twoGisUrl}" target="_blank" rel="noreferrer">2ГИС Вокзальная <span>154 отзыва</span></a>
-        <a class="review-link" href="${twoGisSecondUrl}" target="_blank" rel="noreferrer">2ГИС Орехова <span>79 отзывов</span></a>
-        <a class="review-link" href="${yandexUrl}" target="_blank" rel="noreferrer">Яндекс Карты <span>открыть</span></a>
-        <a class="review-link" href="${googleUrl}" target="_blank" rel="noreferrer">Google <span>открыть</span></a>
+      <h2 class="section-title">Оценки клиентов на картах</h2>
+      <p class="section-text">Показываем сводные показатели официальных карточек сервиса. Нажмите на площадку, чтобы открыть отзывы.</p>
+    </div>
+    <div class="platform-ratings">
+      <a class="platform-rating platform-rating--yandex" href="${yandexUrl}" target="_blank" rel="noreferrer">
+        <span class="platform-rating__name">Яндекс Карты</span>
+        <strong>4.9</strong>
+        <span class="platform-rating__stars">★★★★★</span>
+        <span class="platform-rating__count">26 отзывов · 32 оценки</span>
+        <span class="platform-rating__open">Открыть отзывы</span>
+      </a>
+      <div class="platform-rating platform-rating--twogis">
+        <span class="platform-rating__name">2ГИС · оба филиала</span>
+        <strong>4.8</strong>
+        <span class="platform-rating__stars">★★★★★</span>
+        <span class="platform-rating__count">239 отзывов</span>
+        <div class="platform-rating__branches">
+          <a href="${twoGisUrl}/tab/reviews" target="_blank" rel="noreferrer">Вокзальная · 160</a>
+          <a href="${twoGisSecondUrl}/tab/reviews" target="_blank" rel="noreferrer">Орехова · 79</a>
+        </div>
       </div>
     </div>
+    <div class="review-source-note">Данные площадок проверены 24.07.2026.</div>
     <div class="review-cards">
-      <article class="review-card"><p>Отличный сервис, принес телефон не включается, оставил ребятам. Позвонили через минуту 15, сказали что надо менять батарейку. Была произведена замена, все работает теперь как надо. Рекомендую.</p><strong>Алексей Буркасов</strong><span>2ГИС</span></article>
-      <article class="review-card"><p>Оперативно за время не более часа и за демократичную цену убрали сильный дрифт левого стика на моём DualSense. Спасибо большое, буду обращаться еще и советовать людям.</p><strong>Владимир Пастухов</strong><span>2ГИС</span></article>
-      <article class="review-card"><p>Нужно было поменять батарейку на яблочном смартфоне, позвонил, все выяснил, цена устроила. Сдал телефон, через 2 часа забрал. Все качественно и оперативно.</p><strong>Антон Андреев</strong><span>2ГИС</span></article>
+      <article class="review-card"><p>Отличный сервис, принес телефон: не включался. Быстро определили неисправность, заменили аккумулятор, всё работает как надо.</p><strong>Алексей Буркасов</strong><span>2ГИС</span></article>
+      <article class="review-card"><p>Оперативно, не более чем за час, убрали сильный дрифт левого стика DualSense. Спасибо, буду обращаться ещё.</p><strong>Владимир Пастухов</strong><span>2ГИС</span></article>
+      <article class="review-card"><p>Нужно было поменять аккумулятор на смартфоне. Цена устроила, через два часа забрал готовый телефон.</p><strong>Антон Андреев</strong><span>2ГИС</span></article>
+    </div>
+    <div class="all-review-links">
+      <a href="${googleUrl}" target="_blank" rel="noreferrer">Также открыть карточку в Google</a>
     </div>
   </div>
 </section>`;
@@ -374,6 +418,12 @@ function contactBody(root) {
           <option>Другое</option>
         </select>
         <textarea class="input" name="Описание" rows="5" placeholder="Опишите неисправность"></textarea>
+        <select class="input" name="Филиал" required>
+          <option value="">Выберите филиал</option>
+          <option>ул. Вокзальная, 47 · ежедневно 10:00-19:00</option>
+          <option>ул. Орехова, 54 · ежедневно 10:00-19:00</option>
+          <option>Нужен выезд мастера</option>
+        </select>
         <button class="btn btn-primary" type="submit">Отправить заявку</button>
       </form>
       <div class="contact-card">

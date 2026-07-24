@@ -38,10 +38,17 @@ try {
   await navigate(cdp, `${baseUrl}/remont/telefony/apple/iphone-15/`);
   await expect(
     cdp,
-    "header counters removed",
-    "document.querySelector('.site-header .odometer-strip') === null && document.querySelectorAll('.site-header .odometer').length === 0"
+    "concise header repair counter",
+    "document.querySelector('.site-header [data-header-counter]') !== null && document.querySelector('.header-repair-counter')?.textContent.includes('Отремонтировано')"
   );
   await expect(cdp, "desktop price rows", "document.querySelectorAll('.price-row').length >= 10");
+  await expect(cdp, "average price column", "document.querySelector('.price-list__head')?.textContent.includes('Средняя цена ремонта')");
+  await expect(cdp, "model scroller controls", "document.querySelector('[data-model-scroller].has-overflow') !== null");
+  const modelScrollBefore = await cdp.eval("document.querySelector('[data-model-row]')?.scrollLeft || 0");
+  await cdp.eval("document.querySelector('.model-scroller__button--next')?.click()");
+  await delay(500);
+  const modelScrollAfter = await cdp.eval("document.querySelector('[data-model-row]')?.scrollLeft || 0");
+  if (modelScrollAfter.result.value <= modelScrollBefore.result.value) failures.push("desktop model scroller moves");
   await expect(cdp, "category tabs have icons", "document.querySelectorAll('.catalog-tabs .tab-icon').length >= 4");
   await expect(cdp, "active category icon present", "document.querySelector('.catalog-tabs .tab.active .tab-icon') !== null");
   await expect(cdp, "device media tags present", "document.querySelectorAll('.device-media-tags span').length >= 3");
@@ -64,11 +71,14 @@ try {
   await cdp.eval("document.querySelectorAll('.price-row .select-service')[1].click()");
   await delay(250);
   await expect(cdp, "booking bar visible", "document.querySelector('.booking-bar.visible') !== null");
+  await expect(cdp, "booking contact label", "document.querySelector('.booking-bar button')?.textContent.trim() === 'Связаться'");
+  await expect(cdp, "booking contact enlarged", "document.querySelector('.booking-bar button').getBoundingClientRect().height >= 50");
   await cdp.eval("document.querySelector('.booking-bar button').click()");
   await delay(250);
   await expect(cdp, "modal visible", "document.querySelector('.modal.visible') !== null");
   await expect(cdp, "selected service checked", "document.querySelectorAll('.selected-list input:checked').length >= 1");
   await expect(cdp, "two branch cards for phone", "document.querySelectorAll('.branch-card').length === 2");
+  await expect(cdp, "complete repair form", "document.querySelector('[name=\"Тип устройства\"]') !== null && document.querySelector('[name=\"Описание неисправности\"]') !== null");
   await expect(
     cdp,
     "email form action",
@@ -79,6 +89,7 @@ try {
     "contact form action",
     "document.querySelector('.contact-form')?.action.includes('shineteatr@gmail.com')"
   );
+  await expect(cdp, "contact form branch", "document.querySelector('.contact-form [name=\"Филиал\"]') !== null");
 
   await setViewport(cdp, 390, 1400, true);
   await navigate(cdp, `${baseUrl}/remont/noutbuki/apple/macbook-pro/`);
@@ -101,7 +112,10 @@ try {
   await expect(cdp, "home page class", "document.body.classList.contains('home-page')");
   await expect(cdp, "home dark hero", "getComputedStyle(document.querySelector('.hero')).backgroundColor === 'rgb(2, 6, 23)'");
   await expect(cdp, "revival counter present", "document.querySelector('[data-revival-counter]') !== null");
-  await expect(cdp, "revival counter copy", "document.querySelector('.revival-counter')?.textContent.includes('Вернули к жизни') && document.querySelector('.revival-counter')?.textContent.includes('ваших гаджетов')");
+  await expect(cdp, "revival counter copy", "document.querySelector('.revival-counter')?.textContent.includes('Отремонтировано устройств') && document.querySelector('.revival-counter')?.textContent.includes('Вернули к жизни')");
+  await expect(cdp, "mobile hero details below counter", "document.querySelector('.hero-copy__details').getBoundingClientRect().top > document.querySelector('.revival-counter').getBoundingClientRect().bottom");
+  await expect(cdp, "repair status widget", "document.querySelector('.status-widget iframe')?.src.includes('app.helloclient.by/check.html')");
+  await expect(cdp, "review platform summaries", "document.querySelector('.platform-rating--yandex')?.textContent.includes('26 отзывов') && document.querySelector('.platform-rating--twogis')?.textContent.includes('239 отзывов')");
   const revivalDuring = await cdp.eval("Number(document.querySelector('[data-revival-counter]')?.textContent.replace(/\\D/g, '') || 0)");
   if (revivalDuring.result.value <= 0 || revivalDuring.result.value >= 523847) failures.push("revival counter starts animated");
   await delay(2600);

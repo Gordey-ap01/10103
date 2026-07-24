@@ -79,6 +79,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", () => {
+    initHeaderCounter();
     initRevivalCounter();
     initGlobalBookingButtons();
     loadCatalog();
@@ -268,15 +269,19 @@
               </div>
               <div>
                 <p class="control-label">Модель</p>
-                <div class="chip-row">
-                  ${models
-                    .map(
-                      (model) =>
-                        `<a class="chip ${model.modelSlug === activeRecord.modelSlug ? "active" : ""}" href="${modelHref(
-                          model
-                        )}">${escapeHTML(model.model)}</a>`
-                    )
-                    .join("")}
+                <div class="model-scroller" data-model-scroller>
+                  <button class="model-scroller__button model-scroller__button--prev" type="button" aria-label="Предыдущие модели">‹</button>
+                  <div class="chip-row model-chip-row" data-model-row>
+                    ${models
+                      .map(
+                        (model) =>
+                          `<a class="chip ${model.modelSlug === activeRecord.modelSlug ? "active" : ""}" href="${modelHref(
+                            model
+                          )}">${escapeHTML(model.model)}</a>`
+                      )
+                      .join("")}
+                  </div>
+                  <button class="model-scroller__button model-scroller__button--next" type="button" aria-label="Следующие модели">›</button>
                 </div>
               </div>
             </div>
@@ -298,6 +303,7 @@
     `;
 
     bindServiceButtons();
+    bindModelScroller();
     syncBookingBar();
     startBrandCounter(activeRecord);
   }
@@ -382,6 +388,12 @@
           <span class="warranty-pill">Гарантия до 12 мес</span>
         </div>
         <div class="price-list">
+          <div class="price-list__head" aria-hidden="true">
+            <span>Работа</span>
+            <span>Срок</span>
+            <span>Средняя цена ремонта</span>
+            <span></span>
+          </div>
           ${firstServices.map(renderServiceRow).join("")}
           ${
             extraServices.length
@@ -405,7 +417,10 @@
           <div class="price-row__desc">${escapeHTML(service.description)}</div>
         </div>
         <div class="price-row__time">${escapeHTML(service.time || "по согласованию")}</div>
-        <div class="price-row__price ${free ? "free" : ""}">${escapeHTML(service.cost)}</div>
+        <div class="price-row__price ${free ? "free" : ""}">
+          <span class="price-row__caption">Средняя цена</span>
+          ${escapeHTML(service.cost)}
+        </div>
         <button class="select-service" type="button">${selected ? "Выбрано" : "Выбрать"}</button>
       </div>
     `;
@@ -414,8 +429,9 @@
   function renderBrandCounter(activeRecord) {
     return `
       <div class="brand-counter" data-brand-counter>
+        <span class="brand-counter__label">Устройств отремонтировано</span>
         <strong data-brand-counter-value>${formatNumber(getBrandCounterStart(activeRecord))}</strong>
-        <span>отремонтировано устройств ${escapeHTML(activeRecord.brand)}</span>
+        <span class="brand-counter__brand">${escapeHTML(activeRecord.brand)}</span>
       </div>
     `;
   }
@@ -473,6 +489,12 @@
                 <option>Другое</option>
               </select>
               <textarea class="input" name="Описание" rows="5" placeholder="Опишите неисправность"></textarea>
+              <select class="input" name="Филиал" required>
+                <option value="">Выберите филиал</option>
+                <option>ул. Вокзальная, 47 · ежедневно 10:00-19:00</option>
+                <option>ул. Орехова, 54 · ежедневно 10:00-19:00</option>
+                <option>Нужен выезд мастера</option>
+              </select>
               <button class="btn btn-primary" type="submit">Отправить заявку</button>
             </form>
             <div class="contact-card">
@@ -550,6 +572,52 @@
     `;
   }
 
+  function bindModelScroller() {
+    document.querySelectorAll("[data-model-scroller]").forEach((scroller) => {
+      const row = scroller.querySelector("[data-model-row]");
+      const previousButton = scroller.querySelector(".model-scroller__button--prev");
+      const nextButton = scroller.querySelector(".model-scroller__button--next");
+      if (!row || !previousButton || !nextButton) return;
+
+      const update = () => {
+        const maxScroll = Math.max(0, row.scrollWidth - row.clientWidth);
+        scroller.classList.toggle("has-overflow", maxScroll > 2);
+        previousButton.disabled = row.scrollLeft <= 2;
+        nextButton.disabled = row.scrollLeft >= maxScroll - 2;
+      };
+
+      const scrollByPage = (direction) => {
+        row.scrollBy({
+          left: direction * Math.max(240, row.clientWidth * 0.72),
+          behavior: "smooth",
+        });
+      };
+
+      previousButton.addEventListener("click", () => scrollByPage(-1));
+      nextButton.addEventListener("click", () => scrollByPage(1));
+      row.addEventListener("scroll", update, { passive: true });
+      row.addEventListener(
+        "wheel",
+        (event) => {
+          if (row.scrollWidth <= row.clientWidth || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+          event.preventDefault();
+          row.scrollLeft += event.deltaY;
+        },
+        { passive: false }
+      );
+      window.addEventListener("resize", update);
+
+      requestAnimationFrame(() => {
+        row.querySelector(".chip.active")?.scrollIntoView({
+          behavior: "auto",
+          block: "nearest",
+          inline: "center",
+        });
+        update();
+      });
+    });
+  }
+
   function bindServiceButtons() {
     document.querySelectorAll(".expand-services").forEach((button) => {
       button.addEventListener("click", () => {
@@ -586,7 +654,7 @@
       bar.className = "booking-bar";
       bar.innerHTML = `
         <div class="booking-bar__text"></div>
-        <button class="btn btn-primary" type="button">Записаться</button>
+        <button class="btn btn-primary" type="button">Связаться</button>
       `;
       document.body.appendChild(bar);
       bar.querySelector("button").addEventListener("click", () => openBookingModal());
@@ -618,6 +686,8 @@
     }
     renderModalServices();
     renderBranchCards();
+    const deviceType = modal.querySelector('[name="Тип устройства"]');
+    if (deviceType && currentDevice) deviceType.value = currentDevice.categorySlug;
     updateFormHiddenFields();
   }
 
@@ -651,6 +721,34 @@
           <input type="hidden" name="Услуги" value="">
           <input type="hidden" name="Филиал" value="">
 
+          <div class="field-grid">
+            <label class="form-field form-field--wide">
+              <span>Тип устройства</span>
+              <select class="input" name="Тип устройства" required>
+                <option value="">Выберите устройство</option>
+                <option value="telefony">Телефон или планшет</option>
+                <option value="noutbuki">Ноутбук</option>
+                <option value="kompyutery">Компьютер</option>
+                <option value="pristavki">Игровая приставка</option>
+                <option value="gejmpady">Геймпад</option>
+                <option value="videokarty">Видеокарта</option>
+                <option value="other">Другое устройство</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span>Имя</span>
+              <input class="input" type="text" name="Имя" autocomplete="name" placeholder="Как к вам обращаться" required>
+            </label>
+            <label class="form-field">
+              <span>Телефон</span>
+              <input class="input" type="tel" name="Телефон" autocomplete="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" required>
+            </label>
+            <label class="form-field form-field--wide">
+              <span>Описание неисправности</span>
+              <textarea class="input" name="Описание неисправности" rows="3" placeholder="Что случилось с устройством"></textarea>
+            </label>
+          </div>
+
           <div class="form-section">
             <p>Услуги</p>
             <div class="selected-list"></div>
@@ -659,17 +757,6 @@
           <div class="form-section">
             <p>Филиал</p>
             <div class="branch-grid"></div>
-          </div>
-
-          <div class="field-grid">
-            <label>
-              <span class="sr-only">Имя</span>
-              <input class="input" type="text" name="Имя" placeholder="Имя" required>
-            </label>
-            <label>
-              <span class="sr-only">Телефон</span>
-              <input class="input" type="tel" name="Телефон" placeholder="+7 (___) ___-__-__" required>
-            </label>
           </div>
 
           <button class="btn btn-dark" type="submit">Отправить заявку</button>
@@ -788,11 +875,12 @@
     let step = 0;
     let startedAt = null;
 
-    function write(valueToRender) {
+    function write(valueToRender, animateHeader = false) {
       el.textContent = formatNumber(valueToRender);
       el.classList.remove("bump");
       void el.offsetWidth;
       el.classList.add("bump");
+      writeHeaderCounter(valueToRender, animateHeader);
     }
 
     function animate(now) {
@@ -815,13 +903,42 @@
       step += 1;
       setTimeout(() => {
         value += 1;
-        write(value);
+        write(value, true);
         tick();
       }, delay);
     }
 
     write(0);
     requestAnimationFrame(animate);
+  }
+
+  function initHeaderCounter() {
+    if (document.querySelector("[data-revival-counter]")) return;
+    const schedule = [1000, 2000, 5000, 2000, 10000];
+    let value = 523847;
+    let step = 0;
+
+    writeHeaderCounter(value);
+    const tick = () => {
+      const delay = schedule[step % schedule.length];
+      step += 1;
+      setTimeout(() => {
+        value += 1;
+        writeHeaderCounter(value, true);
+        tick();
+      }, delay);
+    };
+    tick();
+  }
+
+  function writeHeaderCounter(value, animate = false) {
+    document.querySelectorAll("[data-header-counter]").forEach((counter) => {
+      counter.textContent = formatNumber(value);
+      if (!animate) return;
+      counter.classList.remove("bump");
+      void counter.offsetWidth;
+      counter.classList.add("bump");
+    });
   }
 
   function writeCounter(id, value) {
